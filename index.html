@@ -1202,11 +1202,155 @@ summary { color: #0066cc; cursor: pointer; font-size: 12px; padding: 8px 0; }
   html { scroll-behavior: auto; }
   *,*::before,*::after { transition: none !important; animation: none !important; }
 }
+</style><style>
+/* Modified 2026-10-07: interactive three-deck vehicle loading visualization. */
+.deck-open-button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 17px 0 20px; padding: 12px; color: #0066cc; background: #edf4ff; border: 1px solid #d7e7fc; border-radius: 13px; font-size: 12px; font-weight: 600; }
+.deck-open-button:hover { background: #dcecff; }
+.deck-map-hint { color: #0066cc; }
+#vessel-deck { width: min(1520px,96vw); max-width: none; max-height: 94dvh; padding: 0; border-radius: 28px; overflow: auto; background: #f5f5f7; }
+#vessel-deck::backdrop { background: #28384866; backdrop-filter: blur(12px); }
+.deck-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 23px 30px 20px; background: white; border-bottom: 1px solid #e5e5ea; }
+.deck-title-wrap { min-width: 0; }
+.deck-header h2 { margin: 5px 0 6px; font-size: 27px; line-height: 1.2; letter-spacing: -.7px; overflow-wrap: anywhere; }
+.deck-header .eyebrow { color: #0071e3; font-size: 9px; }
+.deck-identity { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: #86868b; font-size: 11px; }
+.deck-identity .badge { padding: 2px 8px; font-size: 10px; }
+.deck-header-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.deck-demo-chip { color: #806b43; background: #faf3e7; border: 1px solid #ede1cc; padding: 6px 11px; border-radius: 999px; font-size: 10px; }
+#deck-close { width: 38px; height: 38px; padding: 0; font-size: 27px; font-weight: 300; color: #73737b; }
+.deck-workspace { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 18px; padding: 20px; }
+.deck-view { display: flex; flex-direction: column; min-width: 0; border: 1px solid #e2e8ee; border-radius: 21px; background: #edf3f8; overflow: hidden; }
+.deck-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px 20px 0; flex-wrap: wrap; }
+.deck-segments { display: flex; gap: 3px; padding: 4px; background: #ffffffbd; border: 1px solid white; border-radius: 999px; }
+.deck-segments button { padding: 7px 13px; font-size: 11px; background: transparent; color: #6e7b87; }
+.deck-segments button[aria-pressed=true] { color: #0066cc; background: #fff; box-shadow: 0 2px 8px #30435a14; }
+#deck-assembly { padding: 8px 13px; font-size: 11px; color: #42647d; border: 1px solid #d8e4ee; background: #ffffffb0; }
+.deck-scene { position: relative; flex: 1; min-height: 420px; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 48% 48%,#fff9 0%,#edf3f800 72%); }
+.deck-scene svg { display: block; width: 100%; max-height: 66dvh; min-height: 390px; overflow: visible; }
+.deck-scene-caption { position: absolute; top: 20px; left: 25px; pointer-events: none; }
+.deck-scene-caption strong { display: block; color: #2e4c64; font-size: 17px; font-weight: 600; letter-spacing: -.4px; }
+.deck-scene-caption span { display: block; margin-top: 6px; color: #8092a1; font-size: 11px; }
+.deck-level-shape { cursor: pointer; transition: opacity .25s; }
+.deck-scene [data-deck-select]:focus-visible { outline: none; filter: drop-shadow(0 0 5px #0071e3); }
+.deck-car { cursor: pointer; }
+.deck-car:focus-visible { outline: none; filter: drop-shadow(0 0 5px #0071e3); }
+.deck-legend { display: flex; align-items: center; justify-content: center; gap: 23px; padding: 6px 18px 18px; color: #5c7184; font-size: 11px; flex-wrap: wrap; }
+.deck-legend span { display: flex; align-items: center; gap: 7px; }
+.deck-legend i { width: 10px; height: 10px; border-radius: 3px; box-shadow: 1px 2px 0 #0002; }
+.deck-scene-controls { display: flex; align-items: center; gap: 12px; padding: 14px 22px; background: #ffffffb5; border-top: 1px solid #dde7ef; color: #718597; font-size: 11px; }
+.deck-scene-controls label { white-space: nowrap; }
+.deck-scene-controls input { width: min(190px,35%); accent-color: #0071e3; }
+.deck-scene-controls output { min-width: 37px; font-variant-numeric: tabular-nums; color: #42647d; }
+.deck-scene-controls .deck-scale-note { margin-left: auto; font-size: 10px; }
+.deck-sidebar { min-width: 0; display: flex; flex-direction: column; gap: 13px; }
+.deck-panel { padding: 19px; background: white; border: 1px solid #e9e9ee; border-radius: 19px; }
+#vessel-deck .deck-panel h3 { margin: 0 0 15px; font-size: 13px; }
+.deck-floor-list { display: flex; flex-direction: column; gap: 8px; }
+.deck-floor-card { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border-radius: 13px; text-align: left; background: #f8f9fb; border: 1px solid #ededf1; }
+.deck-floor-card[aria-pressed=true] { border-color: #95bfed; background: #f0f6ff; }
+.deck-floor-number { display: flex; align-items: center; justify-content: center; width: 34px; height: 38px; border-radius: 10px; background: var(--floor-bg); color: var(--floor-color); font-size: 15px; font-weight: 650; }
+.deck-floor-card .deck-floor-text { flex: 1; min-width: 0; }
+.deck-floor-text strong { display: block; font-size: 11px; font-weight: 600; }
+.deck-floor-text small { display: block; font-size: 10px; color: #86868b; margin-top: 3px; }
+.deck-floor-text small span { display: inline-block; white-space: nowrap; }
+.deck-floor-count { color: #526b7d; font-size: 12px; font-variant-numeric: tabular-nums; }
+.deck-editor-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.deck-editor-heading>span { color: #0071e3; font-size: 10px; }
+.deck-vehicle-row { display: flex; align-items: center; gap: 8px; padding: 12px 0; border-top: 1px solid #ededf0; }
+.deck-vehicle-label { flex: 1; display: flex; align-items: center; gap: 9px; font-size: 12px; }
+.deck-vehicle-label i { width: 9px; height: 9px; border-radius: 3px; background: var(--car-color); }
+.deck-vehicle-label small { display: block; font-size: 9px; color: #96969e; margin-top: 3px; }
+.deck-stepper { display: flex; align-items: center; gap: 8px; }
+.deck-stepper button { width: 27px; height: 27px; padding: 0; border: 1px solid #e4e8ed; background: #f8f9fb; color: #536c80; font-size: 17px; }
+.deck-stepper output { min-width: 44px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.deck-slot-track { height: 5px; margin-top: 9px; background: #ededf0; border-radius: 5px; overflow: hidden; }
+.deck-slot-track div { height: 100%; background: #0071e3; border-radius: 5px; transition: width .2s; }
+.deck-slot-caption { display: flex; justify-content: space-between; margin-top: 8px; color: #86868b; font-size: 10px; }
+#deck-car-info { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #f5f7fa; color: #5e7487; font-size: 10px; line-height: 1.8; min-height: 54px; }
+.deck-reset { display: block; margin-top: 13px; width: 100%; font-size: 11px; background: #f5f5f7; color: #73737b; }
+.deck-summary-numbers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.deck-summary-numbers span { display: block; color: #86868b; font-size: 10px; }
+.deck-summary-numbers strong { display: block; margin-top: 5px; font-size: 23px; font-weight: 600; letter-spacing: -.7px; }
+.deck-summary-numbers small { font-size: 10px; font-weight: 400; margin-left: 3px; color: #86868b; }
+#vessel-deck .deck-data-note { margin: 12px 0 0; font-size: 10px; line-height: 1.8; color: #96969e; }
+.deck-footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; border-top: 1px solid #e5e5ea; padding: 14px 28px; color: #86868b; font-size: 10px; background: #fff; }
+.deck-footer strong { color: #5e7588; font-weight: 500; }
+#deck-feedback { color: #0071e3; }
+@media(min-width:801px) {
+  #vessel-deck[open] { display: flex; flex-direction: column; height: min(1000px,94dvh); }
+  .deck-header,.deck-footer,.deck-toolbar,.deck-legend,.deck-scene-controls { flex-shrink: 0; }
+  .deck-workspace { flex: 1; min-height: 0; }
+  .deck-sidebar { min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #d6dde4 transparent; }
+  .deck-view,.deck-scene { min-height: 0; }
+  #deck-drawing { height: 100%; }
+  .deck-scene svg { height: 100%; min-height: 0; max-height: none; }
+}
+@media(max-width:1100px) {
+  .deck-workspace { grid-template-columns: minmax(0,1fr) 275px; padding: 14px; gap: 12px; }
+  .deck-panel { padding: 15px; }
+  .deck-scene-caption { top: 17px; left: 20px; }
+  .deck-scene-caption strong { font-size: 15px; }
+  .deck-scale-note { display: none; }
+}
+@media(max-width:800px) {
+  #vessel-deck { width: calc(100vw - 16px); max-height: 96dvh; border-radius: 20px; }
+  .deck-header { padding: 18px; gap: 10px; }
+  .deck-header h2 { font-size: 21px; }
+  .deck-demo-chip { display: none; }
+  .deck-workspace { grid-template-columns: 1fr; padding: 10px; }
+  .deck-sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .deck-summary-panel { grid-column: 1 / -1; }
+  .deck-scene { min-height: 310px; }
+  .deck-scene svg { min-height: 0; max-height: none; }
+  .deck-scene-caption { top: 13px; left: 17px; }
+  .deck-scene-caption strong { font-size: 13px; }
+  .deck-scene-caption span { font-size: 9px; }
+  .deck-footer { padding: 13px 18px; align-items: flex-start; flex-direction: column; gap: 6px; }
+}
+@media(max-width:480px) {
+  .deck-sidebar { display: flex; }
+  .deck-toolbar { padding: 12px 12px 0; gap: 8px; }
+  .deck-segments button { padding: 6px 10px; font-size: 10px; }
+  #deck-assembly { font-size: 10px; padding: 6px 10px; }
+  .deck-scene { min-height: 265px; }
+  .deck-scene-caption span { display: none; }
+  .deck-legend { gap: 12px; font-size: 10px; padding-bottom: 12px; }
+  .deck-scene-controls { padding: 10px 14px; }
+}
+@media(prefers-reduced-motion:reduce) { .deck-level-shape,.deck-slot-track div { transition: none; } }
 </style></head><body>
 <header class="topbar"><div class="brand"><span class="brandmark">◈</span> OCEAN<span class="brand-sub">FLEET OPERATIONS</span></div><div class="source-chip">EXCEL DEMO<span>2026.10.02 기준</span></div><button id="about-open" class="quiet">데이터·검증 안내</button></header>
 <section class="overview" aria-label="선박 운항 현황"><div class="fleet-title"><div><span class="eyebrow">200 VESSELS / 37 PORTS</span><h1>선박 운항 지도</h1></div><span class="count">200</span></div></section><main><aside class="fleet"><div id="stats" class="stats"></div><div class="searchbox"><label for="search">선박 검색</label><input id="search" type="search" placeholder="선박명 · ID · MMSI" autocomplete="off"></div><div class="list-caption"><span id="list-count">200척</span><button id="reset-filter">전체 상태</button></div><div id="fleet-list" class="fleet-list" aria-label="선박 목록"></div><footer class="fleet-footer"><span class="tiny-square"></span>합성 데이터 · 엑셀 스냅샷</footer></aside>
 <section class="map-stage" aria-label="선박 위치 지도"><div id="map"></div><div class="map-heading"><span class="eyebrow">GLOBAL FLEET</span><span id="map-title">전체 선박 위치</span></div><div class="map-controls"><button id="fit-all">전체 보기</button><button id="focus-vessel">선택 선박</button><button id="route-toggle" aria-pressed="false">경로 표시</button><button id="fit-route" hidden>경로 전체</button></div><div id="route-note" class="route-note" hidden>해상 추천 경로 · 실제 AIS 항적 아님</div><div class="map-legend"><span><i style="background:#087f6d"></i>운항 중</span><span><i style="background:#a56c18"></i>배선 가능</span><span><i style="background:#c34e65"></i>정비 중</span><span><i style="background:#8060b8"></i>타사 용선</span><span class="legend-port">◇ 항구 접근점</span></div><div class="map-readout"><span>N ↑</span><span>배: 선수 방향 · 점선: 진행 방향 / 묶음 숫자: 가까운 영역의 척수</span></div></section>
 <aside class="detail" id="detail" aria-live="polite"></aside></main>
+<dialog id="vessel-deck" aria-labelledby="deck-title" aria-describedby="deck-description">
+  <header class="deck-header">
+    <div class="deck-title-wrap"><span class="eyebrow">OCEAN / VESSEL INTERIOR</span><h2 id="deck-title">3층 차량 운반선</h2><div id="deck-identity" class="deck-identity"></div></div>
+    <div class="deck-header-actions"><span class="deck-demo-chip">3층 배치 데모</span><button id="deck-close" aria-label="선박 내부 닫기" autofocus>×</button></div>
+  </header>
+  <div class="deck-workspace">
+    <section class="deck-view" aria-label="3층 선박 입체도">
+      <div class="deck-toolbar">
+        <div class="deck-segments" aria-label="볼 층 선택"><button data-deck-focus="0" aria-pressed="true">전체 층</button><button data-deck-focus="3" aria-pressed="false">3층</button><button data-deck-focus="2" aria-pressed="false">2층</button><button data-deck-focus="1" aria-pressed="false">1층</button></div>
+        <button id="deck-assembly" aria-pressed="false">층 합쳐 보기</button>
+      </div>
+      <div class="deck-scene" id="deck-scene"><div class="deck-scene-caption"><strong id="deck-view-heading">세 층을 한눈에.</strong><span>층을 누르면 강조 · 차량을 누르면 정보</span></div><div id="deck-drawing" style="width:100%"></div></div>
+      <div class="deck-legend"><span><i style="background:#46b5a1"></i>소형차</span><span><i style="background:#6098e6"></i>중형차</span><span><i style="background:#e5ae60"></i>대형차</span><span><strong>자동차 그림 1개 = 100대</strong></span></div>
+      <div class="deck-scene-controls"><label for="deck-gap">층 사이 간격</label><input id="deck-gap" type="range" min="90" max="175" value="155"><output id="deck-gap-value" for="deck-gap">155</output><span class="deck-scale-note">구조·차량 크기는 보기 쉬운 비율로 표현</span></div>
+    </section>
+    <aside class="deck-sidebar">
+      <section class="deck-panel"><h3>차량 데크</h3><div class="deck-floor-list" id="deck-floor-list"></div></section>
+      <section class="deck-panel">
+        <div class="deck-editor-heading"><h3 id="deck-editor-title">3층 차량 배치</h3><span>＋ / − 100대씩</span></div>
+        <div id="deck-vehicle-controls"></div><div class="deck-slot-track"><div id="deck-slot-fill"></div></div><div class="deck-slot-caption"><span>데모 배치량</span><span id="deck-slot-caption"></span></div>
+        <div id="deck-car-info" aria-live="polite">차량을 클릭하면 해당 차량의 크기와 위치를 볼 수 있습니다.</div>
+        <button id="deck-reset" class="deck-reset">이 배의 배치 초기화</button>
+      </section>
+      <section class="deck-panel deck-summary-panel"><h3>선박과 배치</h3><div class="deck-summary-numbers"><div><span>현재 배치 데모</span><strong id="deck-demo-total">0<small>대</small></strong></div><div><span>원본 현재 적재</span><strong id="deck-source-total">0<small>대</small></strong></div></div><p class="deck-data-note" id="deck-description">자동차 그림 1개는 100대를 나타내며, ＋ / − 버튼으로 100대씩 조정합니다. 층당 그림 36개(3,600대)는 시각화용 데모 한도이며 실제 선박 용량은 아닙니다. 층별 배치와 차종 크기는 예시이며 원본 엑셀 적재량과는 별도로 관리합니다.</p></section>
+    </aside>
+  </div>
+  <footer class="deck-footer"><span><strong>3 DECKS / VEHICLE CARRIER</strong> · 선박별 데모 배치는 이 화면을 사용하는 동안 유지됩니다.</span><span id="deck-feedback" role="status" aria-live="polite">지도에서 배를 더블클릭하면 열립니다.</span></footer>
+</dialog>
 <dialog id="about"><div class="dialog-header"><h2>데이터와 표시 기준</h2><button id="about-close" aria-label="닫기">×</button></div><div class="notice">가상의 선박·위치·화물·계약 데이터입니다. 기준일은 2026.10.02이며 현재 시각으로 이동시키거나 실시간 위치로 표시하지 않습니다.</div><h3>원본과 연결</h3><p>최종 data.xlsx<br>선박 200척 / 항차 200건 / 주문 360건 / 항구 37곳</p><p>선박은 vessel_id, 최신 위치의 항차는 voyage_id, 배정 화물은 assigned_vessel_id와 assigned_voyage_id, 항구는 port_code로 연결합니다. 현재 항차·화물·접안 제한·정비·용선·선대 배정 정보를 함께 표시합니다.</p><h3>색상과 방향</h3><p>색상은 VESSEL.operating_status 원본값입니다. 타사 용선은 이동·정박 상태와 별개입니다. 배 모양은 heading_deg, 진행 방향 점선은 course_deg로 표시합니다. 두 값이 크게 다른 합성 데이터도 그대로 표시합니다. 0°는 북쪽, 90°는 동쪽입니다. 저속·정박 시 방향은 참고용입니다.</p><h3>위치와 항구</h3><p>마커는 VESSEL_LIVE의 좌표에 놓입니다. VOYAGE.current_port_code는 운항 중인 배가 그 항구에 있다는 뜻으로 사용하지 않습니다. reported_port_code가 있을 때만 보고 항구로 표시합니다. 축소 화면에서는 가까운 영역의 배를 숫자로 묶습니다. 선택하거나 확대하면 개별 선박은 원본 좌표에 표시하며, 좌표를 임의로 흩뜨리지 않습니다. 항구 기준 좌표와 정박 위치는 서로 다를 수 있습니다.</p><h3>경로 표시</h3><p>route_plan의 항구 순서를 유지하고, searoute의 해상 경로망에서 육지와 겹치는 구간을 제외한 뒤 최단 경로를 계산했습니다. 항구는 공개 항구 좌표와 수정된 엑셀의 정박 좌표를 참고해 바다에 연결 가능한 접근 지점으로 표시합니다. 도시 중심점·육지에 있는 항구 기준점까지 직선으로 잇지 않습니다. 북위·남위 70° 밖의 극지 항로, 항만 내부 진입 경로와 상세 지형에 덮인 운하는 제외되어 큰 우회가 발생할 수 있습니다. 지도에 나온 추천 경로 거리와 엑셀의 거리 값은 별개입니다. 실제 AIS 항적이나 선박의 운항 확정 경로는 아닙니다. 현재 위치에서 경로까지도 임의의 직선을 그리지 않습니다. 정비 중인 선박은 정비 후 출항할 계획 경로입니다. 수심·기상·통항 허가·운하 개방 상태를 반영한 항해용 경로는 아닙니다.</p><div id="sea-audit" class="notice"></div><h3>시각과 적재</h3><p>시각은 엑셀 값을 그대로 표시합니다. 원본 시각 컬럼에 시간대가 명시되지 않아 UTC·KST 변환을 하지 않습니다. 잔여 용량과 배정 주문 합계를 별도로 표시하고, 배정분을 차감한 추가 여유는 계산값으로 구분합니다.</p><h3>다시 확인한 데이터</h3><div id="audit-summary"></div><div id="audit-checks"></div><p class="muted">이 검사는 아래 표시 범위의 구조·값 확인입니다. 현실의 운항 가능성이나 항해 안전을 검증한 결과는 아닙니다. 원본 VALIDATION 시트의 33개 검사 결과도 별도로 보존했습니다.</p><details><summary>원본 VALIDATION 결과</summary><div id="original-checks"></div></details><h3>지도</h3><p>Natural Earth의 상세 지형, Leaflet, 계산한 해상 경로를 HTML에 포함했습니다. 인터넷·API 키·별도 서버 없이 열립니다.</p><a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> · <a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a> · <a href="https://github.com/genthalili/searoute-py" target="_blank" rel="noopener">searoute 해상 경로망</a></dialog>
 <script>/* @preserve
  * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
@@ -1244,9 +1388,10 @@ const issue=v.issues.length?`<div class="data-warning">${v.issues.map(esc).join(
 const maint=v.maintenance.map(m=>`<div class="schedule-card"><div>${esc(m.maintenance_type)} <span class="inline-state">${active(m)?'기준일 진행 중':m.start_datetime>ASOF?'예정':'종료'}</span></div><small>${pName(m.maintenance_port_code)}</small><small>${time(m.start_datetime)} ~ ${time(m.end_datetime)}</small><small>${m.blocking_flag?'해당 기간 배선 차단':'배선 차단 없음'} · ${esc(m.status)}</small></div>`).join('');
 const charter=v.charter.map(c=>`<div class="schedule-card"><div>${esc(c.charterer_name)}</div><small>${time(c.start_datetime)} ~ ${time(c.end_datetime)}</small><small>${esc(c.charter_status)} · 자사 화물 ${c.own_cargo_allowed?'허용':'차단'}</small></div>`).join('');
 $('detail').innerHTML=`<span class="eyebrow">SELECTED VESSEL</span><div class="detail-id">${esc(v.vessel_id)} / ${esc(v.vessel_type)}</div><h2>${esc(v.vessel_name.replace('PCTC ',''))}</h2><span class="badge" style="color:${status(v).color};border-color:${status(v).color}66;background:${status(v).color}15">${esc(v.operating_status)}</span>${issue}<section class="section"><h3>위치와 방향 <span class="source-label">VESSEL_LIVE</span></h3>${l?`<div class="metrics">${metric('속력',l.speed_knots.toFixed(1),'kn')}${metric('선수 방향',l.heading_deg,'°')}${metric('진행 방향',l.course_deg,'°')}${metric('유효 속력 상한',v.effective_speed_cap_knots,'kn')}</div><div class="coord">LAT ${Math.abs(l.latitude).toFixed(4)}° ${l.latitude>=0?'N':'S'}<br>LON ${Math.abs(l.longitude).toFixed(4)}° ${l.longitude>=0?'E':'W'}</div>${kv('보고 항구',l.reported_port_code?pName(l.reported_port_code):'없음 · 해상 좌표')}${kv('항해 상태',esc(l.nav_status))}<p class="subtle">위치 갱신 ${time(l.last_updated)} · 원본 시각${l.speed_knots<1?'<br>저속·정박: 방향 0° 등은 참고용입니다.':`<br>선수·진행 방향 차이 ${angle}° · 원본값 유지`}</p>`:'<p class="empty-cargo">최신 위치 데이터가 없습니다.</p>'}</section><section class="section"><h3>현재 / 예정 항차 <span class="source-label">VOYAGE</span></h3>${q?`<div class="voyage-id">${esc(q.voyage_id)}</div><div class="route-stops">${steps}</div>${kv('이전 항구',pName(q.previous_port_code))}${kv('항차 상태',esc(q.voyage_status))}${kv('예정 출항',time(q.etd))}${kv('예정 도착',time(q.eta))}${kv('남은 / 총 거리 (엑셀)',`${num(q.remaining_distance_nm)} / ${num(q.route_distance_nm)} nm`)}${kv('해상 경로 거리 (계산)',routeDistance(v))}${kv('계획 속력',`${num(q.planned_speed_knots)} kn`)}<div class="route-plan">${esc(q.route_plan)}</div><p class="subtle">${showRoute?'지도 선은 육지 겹침을 검사한 해상 추천 경로입니다.':'경로 표시를 누르면 바다를 따라가는 추천 경로를 볼 수 있습니다.'}<br>실제 AIS 항적이 아닙니다. 항만 진입·운하 구간을 제외한 항구 접근 해역을 연결합니다.${v.operating_status==='정비 중'?'<br>정비 후 출항 계획입니다.':''}</p>`:'<p class="empty-cargo">연결된 항차가 없습니다.</p>'}</section><section class="section"><h3>적재와 배정 <span class="source-label">VESSEL · CARGO</span></h3><div class="capacity-top"><strong>${num(v.remaining_capacity)}</strong><span>대 잔여 용량 (원본)</span></div><div class="capacity-track" role="img" aria-label="현재 적재율 ${load.toFixed(1)}%"><div style="width:${Math.max(0,Math.min(100,load))}%;background:${status(v).color}"></div></div>${kv('적재 / 총 용량',`${num(v.loaded_vehicle)} / ${num(v.capacity)}대`)}${kv('배정 주문 합계',`${v.cargo.length}건 · ${num(assigned)}대`)}${kv('배정분 차감 여유',`${num(v.remaining_capacity-assigned)}대 (계산)`)}<p class="subtle">배정 주문은 아직 적재된 차량 수와 별개입니다. 추가 여유는 잔여 용량에서 배정 합계를 뺀 값입니다.</p>${v.cargo.map(c=>`<div class="cargo-order"><div>${esc(c.order_id)}<small>${esc(c.customer)} · ${esc(c.order_status)}</small><small>${esc(c.origin_port_code)} / ${esc(c.destination_port_code)}</small><small>선적 기한 ${time(c.loading_deadline)}</small><small>납품 기한 ${time(c.delivery_deadline)}</small></div><strong>${num(c.quantity)}대</strong></div>`).join('')||'<p class="empty-cargo">배정된 주문이 없습니다.</p>'}</section>${maint?`<section class="section"><h3>정비 일정</h3>${maint}</section>`:''}${charter?`<section class="section"><h3>타사 용선 계약</h3>${charter}</section>`:''}<section class="section"><h3>선박·배선 조건</h3>${kv('선박 전장 / 설계 흘수',`${num(v.loa_m)} m / ${num(v.design_draft_m)} m`)}${kv('환경 속력 제한',v.environmental_speed_restriction?esc(v.environmental_rule):'없음')}${kv('선대 우선순위',esc(v.fleet_priority))}${kv('극동 복귀 검토',v.far_east_return_required?'필요':'불필요')}${v.allocation?kv('배정 팀',esc(v.allocation.allocated_team))+kv('전환 허용',v.allocation.switch_allowed?'허용':'승인 필요 · '+esc(v.allocation.switch_approval_owner)):''}<p class="subtle">${esc(v.availability_note)}</p></section><div class="data-stamp">MMSI ${esc(v.mmsi)} / IMO ${esc(v.imo_number)}<br>${esc(v.flag_country)} · ${v.year_built}년 건조<br>${esc(l?.position_source||v.data_source)} · 원본 시각 유지</div>`;
+$('detail').querySelector('.badge').insertAdjacentHTML('afterend',`<button class="deck-open-button" data-open-deck="${esc(v.vessel_id)}"><span aria-hidden="true">▱</span> 3층 내부 보기 <span aria-hidden="true">↗</span></button>`);
 $('map-title').textContent=v.vessel_name;$('route-note').textContent=(v.operating_status==='정비 중'?'정비 후 ':'')+'해상 추천 경로 · 실제 AIS 항적 아님';}
 function hullIcon(v,selectedIcon=false){return L.divIcon({className:`ship-marker boat-marker ${selectedIcon?'selected':''}`,html:hull(status(v).color,finite(v.live?.heading_deg)?v.live.heading_deg:0),iconSize:[44,60],iconAnchor:[22,30]});}
-function createShip(v,layer,chosen=false){return L.marker(position(v),{icon:hullIcon(v,chosen),title:v.vessel_name,alt:v.vessel_name,keyboard:true,zIndexOffset:chosen?600:0,riseOnHover:true}).bindTooltip(`${esc(v.vessel_name)} · ${esc(v.operating_status)}`,{className:'ship-label',direction:'top',offset:[0,-30],permanent:chosen}).on('click',()=>selectVessel(v.vessel_id,false)).addTo(layer);}
+function createShip(v,layer,chosen=false){return L.marker(position(v),{icon:hullIcon(v,chosen),title:v.vessel_name,alt:v.vessel_name,keyboard:true,zIndexOffset:chosen?1400:0,riseOnHover:true}).bindTooltip(`${esc(v.vessel_name)} · ${esc(v.operating_status)}<br><span class="deck-map-hint">더블클릭 · 3층 내부 보기</span>`,{className:'ship-label',direction:'top',offset:[0,-30],permanent:chosen}).on('click',e=>handleVesselActivation(v.vessel_id,false,e.originalEvent,'map')).on('dblclick',e=>{if(e.originalEvent)L.DomEvent.stop(e.originalEvent);openVesselDeck(v.vessel_id);}).on('add',function(){this.getElement().dataset.vesselMarker=v.vessel_id;}).addTo(layer);}
 function drawFleet(){if(!map)return;fleetLayer.clearLayers();const groups=new Map();visibleFleet().filter(v=>latlon(v.live)).forEach(v=>{const pixel=map.project(position(v),map.getZoom());const k=`${Math.floor(pixel.x/54)},${Math.floor(pixel.y/54)}`;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(v);});for(const a of groups.values()){if(a.length===1){if(a[0].vessel_id!==selected)createShip(a[0],fleetLayer);continue;}const counts=Object.keys(STATUS).map(s=>({s,n:a.filter(v=>v.operating_status===s).length})).filter(x=>x.n);const bars=counts.map(x=>`<span style="background:${STATUS[x.s].color};flex:${x.n}"></span>`).join('');const selectedHere=a.some(v=>v.vessel_id===selected);const center=a.reduce((p,v)=>{const c=position(v);return[p[0]+c[0]/a.length,p[1]+c[1]/a.length];},[0,0]);const icon=L.divIcon({className:'cluster-marker',html:`<div class="cluster-body ${selectedHere?'has-selected':''}"><b>${a.length}</b><div>${bars}</div></div>`,iconSize:[46,46],iconAnchor:[23,23]});const html=`<div class="cluster-popup"><strong>가까운 영역의 선박 ${a.length}척</strong><p>숫자는 영역 묶음입니다. 선박을 선택하면 원본 좌표에 표시합니다.</p>${a.map(v=>`<button data-group-vessel="${v.vessel_id}"><i style="background:${status(v).color}"></i><span>${esc(v.vessel_name.replace('PCTC ',''))}<small>${esc(v.vessel_id)} · ${esc(v.operating_status)}</small></span></button>`).join('')}</div>`;L.marker(center,{icon,title:`가까운 영역 ${a.length}척`,keyboard:true,zIndexOffset:selectedHere?650:200}).bindPopup(html,{maxWidth:320,minWidth:260,maxHeight:330,className:'group-popup'}).addTo(fleetLayer);}}
 function dest(lat,lng,bearing,km){const rad=Math.PI/180,a=lat*rad,o=lng*rad,b=bearing*rad,t=km/6371;const y=Math.asin(Math.sin(a)*Math.cos(t)+Math.cos(a)*Math.sin(t)*Math.cos(b));const x=o+Math.atan2(Math.sin(b)*Math.sin(t)*Math.cos(a),Math.cos(t)-Math.sin(a)*Math.sin(y));return[y/rad,x/rad];}
 function drawSelection(){if(!map)return;selectionLayer.clearLayers();directionLayer.clearLayers();const v=fleet.find(v=>v.vessel_id===selected);if(!latlon(v.live))return;createShip(v,selectionLayer,true);if(v.live.speed_knots>=1&&finite(v.live.course_deg)){const km=Math.max(1,48*40075*Math.cos(v.live.latitude*Math.PI/180)/(256*2**map.getZoom()));L.polyline([position(v),dest(...position(v),v.live.course_deg,km)],{color:'#5d829e',weight:1.8,dashArray:'3 6',opacity:.85,interactive:false}).addTo(directionLayer);}}
@@ -1269,8 +1414,170 @@ function updateFilter(){renderList();drawFleet();}
 $('sea-audit').textContent=`항구 접근점 ${SEA.meta.port_count}곳 · 항구 간 계산 경로 ${SEA.meta.route_count}개 · 경로 선분 ${SEA.meta.checked_route_segments.toLocaleString('ko-KR')}개 검사 · 상세 지형과 육지 겹침 ${SEA.meta.land_intersections}건`;
 const independentIssues=D.meta.checks.reduce((s,c)=>s+c.count,0);$('stats').innerHTML=Object.keys(STATUS).map(s=>`<button class="stat" data-status="${s}" aria-pressed="false" style="--accent:${STATUS[s].color}"><strong>${fleet.filter(v=>v.operating_status===s).length}</strong><span>${s}</span></button>`).join('');$('audit-summary').innerHTML=`<p class="audit-total">표시 관련 검사 ${D.meta.checks.length}종 · 발견 ${independentIssues}건</p>`;$('audit-checks').innerHTML=D.meta.checks.map(c=>`<div class="check-row"><span>${esc(c.name)}</span><strong>${c.count?c.count+'건':'이상 없음'}</strong></div>`).join('');$('original-checks').innerHTML=D.meta.original_validation.map(c=>`<div class="check-row"><span>${esc(c.check_name)}</span><strong>${esc(c.status)} · ${c.issue_count}건</strong></div>`).join('');
 renderList();renderDetail(fleet.find(v=>v.vessel_id===selected));initMap();
-document.addEventListener('click',e=>{const vessel=e.target.closest('[data-vessel],[data-group-vessel]');if(vessel){selectVessel(vessel.dataset.vessel||vessel.dataset.groupVessel,true);return;}const b=e.target.closest('[data-status]');if(b){filter=filter===b.dataset.status?'':b.dataset.status;updateFilter();}});
+document.addEventListener('click',e=>{const vessel=e.target.closest('[data-vessel],[data-group-vessel]');if(vessel){handleVesselActivation(vessel.dataset.vessel||vessel.dataset.groupVessel,true,e,'list');return;}const b=e.target.closest('[data-status]');if(b){filter=filter===b.dataset.status?'':b.dataset.status;updateFilter();}});
 $('search').addEventListener('input',e=>{search=e.target.value.trim().toLowerCase();updateFilter();});$('reset-filter').onclick=()=>{filter='';search='';$('search').value='';updateFilter();fitAll();};$('fit-all').onclick=fitAll;$('focus-vessel').onclick=()=>selectVessel(selected,true);$('route-toggle').onclick=()=>{showRoute=!showRoute;$('route-toggle').setAttribute('aria-pressed',String(showRoute));renderDetail(fleet.find(v=>v.vessel_id===selected));drawRoute();};$('fit-route').onclick=()=>{if(routeBounds)map.fitBounds(routeBounds,{padding:[95,70],maxZoom:5});};$('about-open').onclick=()=>$('about').showModal();$('about-close').onclick=()=>$('about').close();
 window.OCEAN_DEMO={selectVessel,snapshot:()=>({selected,filter,search,routeVisible:showRoute,visible:visibleFleet().length,mapVessels:visibleFleet().filter(v=>latlon(v.live)).length,routeStops:routePoints(fleet.find(v=>v.vessel_id===selected))?.map(p=>p.code)||[],routeType:'RECOMMENDED_SEA_ROUTE',routeDistance:routeDistance(fleet.find(v=>v.vessel_id===selected)),source:'SIMULATED',asOf:ASOF})};
 if(document.modelContext?.registerTool){const life=new AbortController();for(const t of [{name:'get_fleet_snapshot',description:'현재 엑셀 데모 지도 상태를 조회합니다.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:false},execute:()=>window.OCEAN_DEMO.snapshot()},{name:'select_vessel',description:'선박 ID로 지도와 상세 패널의 선박을 선택합니다.',inputSchema:{type:'object',properties:{vessel_id:{type:'string'}},required:['vessel_id'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute:i=>{if(!i||typeof i.vessel_id!=='string')throw Error('vessel_id가 필요합니다.');return selectVessel(i.vessel_id,true);}}]){try{Promise.resolve(document.modelContext.registerTool(t,{signal:life.signal})).catch(()=>{});}catch{}}window.addEventListener('pagehide',()=>life.abort(),{once:true});}
+</script><script>
+/* Modified 2026-10-09: each vehicle illustration represents 100 vehicles.
+   Preserve the original icon layout and Excel snapshot; counts below store icons. */
+const DECK_TYPES={
+  small:{name:'소형차',kind:'컴팩트',color:'#46b5a1',side:'#258775',light:'#91dfce',length:43,width:18,height:9,roof:9,dimensions:'4.1 × 1.7 × 1.5 m'},
+  medium:{name:'중형차',kind:'세단',color:'#6098e6',side:'#396bb3',light:'#a5c6f5',length:55,width:20,height:11,roof:10,dimensions:'4.8 × 1.8 × 1.6 m'},
+  large:{name:'대형차',kind:'SUV / 밴',color:'#e5ae60',side:'#b27e39',light:'#f5d6a2',length:68,width:22,height:17,roof:13,dimensions:'5.5 × 2.0 × 2.0 m'}
+};
+const DECK_LEVELS={1:{name:'하부 데크',color:'#b78742',bg:'#fbf2e5'},2:{name:'중간 데크',color:'#4c82cb',bg:'#edf3fd'},3:{name:'상부 데크',color:'#339b85',bg:'#eaf7f3'}};
+const DECK_SLOTS=36,DECK_VEHICLES_PER_ICON=100,deckPlans=new Map();
+let deckVessel=null,deckFocus=0,deckEditor=3,deckAssembled=false,deckGap=155,deckSelectedCar=null,deckPreviousFocus=null,deckPreviousOverflow='';
+let vesselClickTimer=null,lastVesselActivation=null;
+function defaultDeckPlan(){return {1:{small:3,medium:3,large:8},2:{small:4,medium:10,large:3},3:{small:13,medium:5,large:2}};}
+function deckPlan(){return deckPlans.get(deckVessel.vessel_id);}
+function deckCount(level){return Object.values(deckPlan()[level]).reduce((sum,n)=>sum+n,0);}
+function deckVehicleCount(level){return deckCount(level)*DECK_VEHICLES_PER_ICON;}
+function deckQuantity(iconCount){return num(iconCount*DECK_VEHICLES_PER_ICON);}
+function handleVesselActivation(id,focus,event,source){
+  clearTimeout(vesselClickTimer);
+  const now=performance.now(),again=lastVesselActivation&&lastVesselActivation.id===id&&lastVesselActivation.source===source&&now-lastVesselActivation.time<520;
+  if(event?.detail>1||again){lastVesselActivation=null;event?.preventDefault();event?.stopPropagation();openVesselDeck(id);return;}
+  lastVesselActivation={id,source,time:now};
+  if(!event||event.detail===0){lastVesselActivation=null;selectVessel(id,focus);return;}
+  vesselClickTimer=setTimeout(()=>{vesselClickTimer=null;selectVessel(id,focus);},280);
+}
+function openVesselDeck(id=selected){
+  clearTimeout(vesselClickTimer);vesselClickTimer=null;lastVesselActivation=null;
+  const v=fleet.find(item=>item.vessel_id===id);if(!v)return;
+  deckVessel=v;if(!deckPlans.has(id))deckPlans.set(id,defaultDeckPlan());
+  deckFocus=0;deckEditor=3;deckAssembled=false;deckGap=155;deckSelectedCar=null;
+  const dialog=$('vessel-deck');
+  if(!dialog.open){deckPreviousFocus=document.activeElement;deckPreviousOverflow=document.body.style.overflow;}
+  if(selected!==id)selectVessel(id,false);
+  $('deck-title').textContent=v.vessel_name.replace('PCTC ','');
+  $('deck-identity').innerHTML=`<span>${esc(v.vessel_id)} · 차량 운반선 / 3층</span><span class="badge" style="color:${status(v).color};border-color:${status(v).color}44;background:${status(v).color}10">${esc(v.operating_status)}</span><span>선박 전장 ${num(v.loa_m)} m</span>`;
+  $('deck-source-total').innerHTML=`${num(v.loaded_vehicle)}<small>대</small>`;
+  $('deck-gap').value='155';$('deck-gap-value').textContent='155';
+  $('deck-feedback').textContent='층을 선택하고 ＋를 누르면 그림 1개 · 차량 100대가 추가됩니다.';
+  renderDeckUI();if(!dialog.open)dialog.showModal();document.body.style.overflow='hidden';
+}
+function focusDeck(level){deckFocus=level;if(level)deckEditor=level;deckSelectedCar=null;renderDeckUI();}
+function isoPoint(x,y,z=0){return [150+x*.91+y*.66,585-x*.23+y*.45-z];}
+function pointText(p){return p.map(n=>n.toFixed(2)).join(',');}
+function poly3(points,fill,stroke='#ffffff',strokeWidth=.8,extra=''){
+  return `<polygon points="${points.map(p=>pointText(isoPoint(...p))).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round" ${extra}/>`;
+}
+function line3(a,b,color,width=1,extra=''){const p=isoPoint(...a),q=isoPoint(...b);return `<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="${color}" stroke-width="${width}" ${extra}/>`;}
+function cuboid(x,y,z,length,width,height,top,front,side,edge='#ffffff88'){
+  return poly3([[x,y+width,z],[x+length,y+width,z],[x+length,y+width,z+height],[x,y+width,z+height]],front,edge)+
+    poly3([[x,y,z],[x,y+width,z],[x,y+width,z+height],[x,y,z+height]],side,edge)+
+    poly3([[x,y,z+height],[x+length,y,z+height],[x+length,y+width,z+height],[x,y+width,z+height]],top,edge);
+}
+function deckVehicle(type,x,y,z,level,index){
+  const t=DECK_TYPES[type],len=t.length,w=t.width,h=t.height,cabinStart=x+len*.24,cabinLength=len*.47;
+  const picked=deckSelectedCar?.level===level&&deckSelectedCar.type===type&&deckSelectedCar.index===index;
+  let s='';
+  if(picked)s+=poly3([[x-5,y-5,z+1],[x+len+5,y-5,z+1],[x+len+5,y+w+5,z+1],[x-5,y+w+5,z+1]],'#ffffff90','#0071e3',2);
+  s+=poly3([[x-2,y+3,z+1],[x+len+3,y+3,z+1],[x+len+3,y+w+4,z+1],[x-2,y+w+4,z+1]],'#213e5b16','none');
+  for(const ax of [x+len*.19,x+len*.81]){
+    const p=isoPoint(ax,y+w,z+4);s+=`<ellipse cx="${p[0]}" cy="${p[1]}" rx="4.4" ry="5.2" fill="#344554"/><ellipse cx="${p[0]}" cy="${p[1]}" rx="2" ry="2.7" fill="#b6c5cf"/>`;
+  }
+  s+=cuboid(x,y,z+4,len,w,h,t.color,t.side,t.light);
+  s+=cuboid(cabinStart,y+2,z+h+4,cabinLength,w-4,t.roof,t.light,t.color,t.side);
+  s+=poly3([[cabinStart+3,y+w-2,z+h+6],[cabinStart+cabinLength-3,y+w-2,z+h+6],[cabinStart+cabinLength-3,y+w-2,z+h+t.roof+2],[cabinStart+3,y+w-2,z+h+t.roof+2]],'#284e68','#ffffff88',.6);
+  s+=line3([cabinStart+cabinLength*.53,y+w-1,z+h+6],[cabinStart+cabinLength*.53,y+w-1,z+h+t.roof+2],t.light,1.2);
+  s+=poly3([[cabinStart+cabinLength,y+3,z+h+5],[cabinStart+cabinLength,y+w-3,z+h+5],[cabinStart+cabinLength,y+w-3,z+h+t.roof+2],[cabinStart+cabinLength,y+3,z+h+t.roof+2]],'#36657e','#ffffffa0',.6);
+  s+=line3([x+len-3,y+2,z+h+5],[x+len-3,y+7,z+h+5],'#fff5cc',2);
+  s+=line3([x+len-3,y+w-7,z+h+5],[x+len-3,y+w-2,z+h+5],'#fff5cc',2);
+  s+=line3([x+3,y+w-5,z+7],[x+3,y+w-1,z+7],'#e6a29a',2);
+  return `<g class="deck-car" role="button" tabindex="0" data-deck-car="${type}" data-car-level="${level}" data-car-index="${index}" aria-label="${level}층 ${t.name} ${index+1}번 묶음, ${DECK_VEHICLES_PER_ICON}대, 차량 정보"><title>${level}층 · ${t.name} ${index+1}번 묶음 · ${DECK_VEHICLES_PER_ICON}대</title>${s}</g>`;
+}
+const deckOutline=[[0,0],[600,0],[658,23],[710,90],[658,157],[600,180],[0,180],[-26,150],[-26,30]];
+function extrudedDeck(z,depth,top,side,edge){
+  let s='';for(let i=0;i<deckOutline.length;i++){
+    const a=deckOutline[i],b=deckOutline[(i+1)%deckOutline.length];
+    s+=poly3([[...a,z-depth],[...b,z-depth],[...b,z],[...a,z]],i<3?'#ccd9e4':side,edge,.7);
+  }
+  return s+poly3(deckOutline.map(p=>[...p,z]),top,edge,1.25);
+}
+function renderDeckDrawing(){
+  const step=deckAssembled?34:deckGap,plan=deckPlan();
+  const shadow=isoPoint(305,110,-120);
+  let svg=`<svg viewBox="0 0 1100 800" role="group" aria-label="${esc(deckVessel.vessel_name)} 3층 선박과 소형 중형 대형 차량 입체도"><defs><filter id="deck-shadow" x="-40%" y="-80%" width="180%" height="260%"><feGaussianBlur stdDeviation="18"/></filter><linearGradient id="deck-hull-paint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b6780"/><stop offset="1" stop-color="#2b4359"/></linearGradient></defs>`;
+  svg+=`<ellipse cx="${shadow[0]}" cy="${shadow[1]}" rx="344" ry="49" transform="rotate(-10 ${shadow[0]} ${shadow[1]})" fill="#38597224" filter="url(#deck-shadow)"/>`;
+  svg+=extrudedDeck(-22,76,'#dae5ee','url(#deck-hull-paint)','#6b8195');
+  svg+=line3([0,181,-46],[600,181,-46],status(deckVessel).color,6);
+  const mark=isoPoint(90,183,-69);svg+=`<text x="${mark[0]}" y="${mark[1]}" fill="#eef4fa" font-size="17" font-weight="600" letter-spacing="3" transform="rotate(-14 ${mark[0]} ${mark[1]})">OCEAN</text>`;
+  if(!deckAssembled)for(const [x,y] of [[25,0],[590,0],[25,180],[590,180]])svg+=line3([x,y,-12],[x,y,step*2+7],'#90a9bb',1.3,'stroke-dasharray="4 8" opacity=".55"');
+  for(const level of [1,2,3]){
+    const z=(level-1)*step,c=DECK_LEVELS[level],dim=deckFocus&&deckFocus!==level,highlight=deckFocus===level;
+    svg+=`<g class="deck-level-shape" opacity="${dim?.25:1}">`;
+    svg+=`<g role="button" tabindex="0" data-deck-select="${level}" aria-label="${level}층 ${c.name} 선택">`;
+    svg+=extrudedDeck(z,16,highlight?'#f1f7ff':'#fbfcfd',highlight?'#adc7e5':'#cfdae4',highlight?'#6698d0':'#abbfce');
+    // Parking lanes, central passage and raised outer rails make each platform readable.
+    for(let col=0;col<=6;col++)for(const [a,b] of [[9,83],[100,176]])svg+=line3([62+col*81,a,z+.6],[62+col*81,b,z+.6],'#d9e2e9',.8);
+    for(const y of [9,32,55,83,100,124,147,176])svg+=line3([62,y,z+.7],[548,y,z+.7],'#d9e2e9',.8);
+    svg+=line3([75,92,z+1],[570,92,z+1],'#cad8e3',1.5,'stroke-dasharray="7 6"');
+    for(const y of [0,180]){svg+=line3([5,y,z+10],[580,y,z+10],'#afc3d3',1.1);for(const x of [5,100,195,290,385,480,575])svg+=line3([x,y,z],[x,y,z+10],'#b0c2d0',.9);}
+    const ramp=isoPoint(620,100,z+1);svg+=`<text x="${ramp[0]}" y="${ramp[1]}" fill="#93a7b8" font-size="10" transform="rotate(-14 ${ramp[0]} ${ramp[1]})">RAMP ↗</text></g>`;
+    const cars=[];for(const type of ['large','medium','small'])for(let i=0;i<plan[level][type];i++)cars.push({type,index:i});
+    const placed=cars.map((car,slot)=>({...car,x:68+(slot%6)*81,y:[12,36,60,104,128,152][Math.floor(slot/6)]}));
+    placed.sort((a,b)=>a.y-b.y||b.x-a.x);for(const car of placed)svg+=deckVehicle(car.type,car.x,car.y,z+1,level,car.index);
+    const anchor=isoPoint(651,168,z+2),labelY=deckAssembled?425+(3-level)*68:anchor[1]-4;
+    svg+=`<g role="button" tabindex="0" data-deck-select="${level}" aria-label="${level}층 ${c.name} 선택"><path d="M${anchor[0]},${anchor[1]} H908 V${labelY}" fill="none" stroke="${c.color}" stroke-width="1.2"/><circle cx="${anchor[0]}" cy="${anchor[1]}" r="3" fill="${c.color}"/><rect x="916" y="${labelY-24}" width="163" height="53" rx="12" fill="#ffffffef" stroke="${highlight?'#80b0e6':'#dfe7ed'}"/><text x="930" y="${labelY-2}" fill="${c.color}" font-size="17" font-weight="650">${level}F</text><text x="961" y="${labelY-3}" fill="#435e73" font-size="11" font-weight="600">${c.name}</text><text x="961" y="${labelY+14}" fill="#8295a3" font-size="9">${deckQuantity(cars.length)}대 · 그림 ${cars.length}개</text></g>`;
+    svg+='</g>';
+  }
+  const roofZ=step*2+12;
+  svg+=`<g opacity="${deckFocus&&deckFocus!==3?.22:1}" pointer-events="none">`;
+  svg+=cuboid(-7,47,roofZ,63,43,29,'#ffffff','#d8e2eb','#ecf1f6','#b9cad8');
+  svg+=cuboid(-3,51,roofZ+29,53,35,13,'#f8fbfd','#c9dce9','#e0eaf2','#b9cad8');
+  for(let x=2;x<44;x+=10)svg+=poly3([[x,86,roofZ+33],[x+7,86,roofZ+33],[x+7,86,roofZ+39],[x,86,roofZ+39]],'#597990','#597990',.3);
+  svg+=cuboid(10,52,roofZ+42,16,14,21,'#405c73','#55778e','#6f90a4','#405c73');
+  svg+=line3([40,63,roofZ+42],[40,63,roofZ+76],'#879cac',2);
+  svg+=line3([28,63,roofZ+67],[52,63,roofZ+67],'#879cac',1.2);
+  svg+='</g>';
+  const arrow=isoPoint(720,92,-30);svg+=`<text x="${arrow[0]+14}" y="${arrow[1]+50}" fill="#839bad" font-size="11">선수 ↗</text><text x="143" y="725" fill="#8da2b2" font-size="10" letter-spacing="2">ISOMETRIC / 3-DECK CONCEPT</text></svg>`;
+  $('deck-drawing').innerHTML=svg;
+}
+function renderDeckUI(){
+  if(!deckVessel)return;
+  const plan=deckPlan(),activeElement=document.activeElement,activeKey=activeElement?.dataset.deckAdjust,activeType=activeElement?.dataset.vehicleType;
+  const activeFloor=activeElement?.dataset.deckSelect,activeCar=activeElement?.dataset.deckCar,activeCarLevel=activeElement?.dataset.carLevel,activeCarIndex=activeElement?.dataset.carIndex,activeInDrawing=$('deck-drawing').contains(activeElement);
+  $('deck-floor-list').innerHTML=[3,2,1].map(level=>{const c=DECK_LEVELS[level];return `<button class="deck-floor-card" data-deck-select="${level}" aria-pressed="${deckEditor===level}" style="--floor-bg:${c.bg};--floor-color:${c.color}"><span class="deck-floor-number">${level}F</span><span class="deck-floor-text"><strong>${level}층 · ${c.name}</strong><small><span>소형 ${deckQuantity(plan[level].small)}</span> · <span>중형 ${deckQuantity(plan[level].medium)}</span> · <span>대형 ${deckQuantity(plan[level].large)}</span></small></span><span class="deck-floor-count">${num(deckVehicleCount(level))}대</span></button>`;}).join('');
+  $('deck-editor-title').textContent=`${deckEditor}층 차량 배치`;
+  $('deck-vehicle-controls').innerHTML=Object.entries(DECK_TYPES).map(([key,t])=>`<div class="deck-vehicle-row"><div class="deck-vehicle-label" style="--car-color:${t.color}"><i></i><span>${t.name}<small>${t.kind}</small></span></div><div class="deck-stepper"><button data-deck-adjust="-1" data-vehicle-type="${key}" aria-label="${deckEditor}층 ${t.name} ${DECK_VEHICLES_PER_ICON}대 빼기" ${plan[deckEditor][key]===0?'disabled':''}>−</button><output aria-label="${deckEditor}층 ${t.name} 수량 (대)">${deckQuantity(plan[deckEditor][key])}</output><button data-deck-adjust="1" data-vehicle-type="${key}" aria-label="${deckEditor}층 ${t.name} ${DECK_VEHICLES_PER_ICON}대 추가" ${deckCount(deckEditor)>=DECK_SLOTS?'disabled':''}>＋</button></div></div>`).join('');
+  $('deck-slot-fill').style.width=`${deckCount(deckEditor)/DECK_SLOTS*100}%`;
+  $('deck-slot-caption').textContent=`${num(deckVehicleCount(deckEditor))} / ${deckQuantity(DECK_SLOTS)}대`;
+  $('deck-demo-total').innerHTML=`${num([1,2,3].reduce((sum,level)=>sum+deckVehicleCount(level),0))}<small>대</small>`;
+  document.querySelectorAll('[data-deck-focus]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.deckFocus)===deckFocus)));
+  $('deck-view-heading').textContent=deckFocus?`${deckFocus}층 · ${DECK_LEVELS[deckFocus].name}`:deckAssembled?'하나의 배로, 다시.':'세 층을 한눈에.';
+  $('deck-assembly').textContent=deckAssembled?'층 분리해서 보기':'층 합쳐 보기';$('deck-assembly').setAttribute('aria-pressed',String(deckAssembled));
+  $('deck-gap').disabled=deckAssembled;
+  $('deck-car-info').textContent=deckSelectedCar?`${deckSelectedCar.level}층 · ${DECK_TYPES[deckSelectedCar.type].name} ${deckSelectedCar.index+1}번 묶음 · ${DECK_VEHICLES_PER_ICON}대 / 차량 1대의 예시 크기 ${DECK_TYPES[deckSelectedCar.type].dimensions}`:'자동차 그림을 클릭하면 100대 묶음의 차종과 위치를 볼 수 있습니다.';
+  renderDeckDrawing();
+  if(activeKey&&activeType){let replacement=$('deck-vehicle-controls').querySelector(`[data-deck-adjust="${activeKey}"][data-vehicle-type="${activeType}"]`);if(replacement?.disabled)replacement=$('deck-vehicle-controls').querySelector(`[data-deck-adjust="${-Number(activeKey)}"][data-vehicle-type="${activeType}"]`);replacement?.focus({preventScroll:true});}
+  else if(activeCar)$('deck-drawing').querySelector(`[data-deck-car="${activeCar}"][data-car-level="${activeCarLevel}"][data-car-index="${activeCarIndex}"]`)?.focus({preventScroll:true});
+  else if(activeFloor)(activeInDrawing?$('deck-drawing'):$('deck-floor-list')).querySelector(`[data-deck-select="${activeFloor}"]`)?.focus({preventScroll:true});
+}
+function adjustDeckVehicle(type,delta){
+  if(!DECK_TYPES[type])return;
+  const floor=deckPlan()[deckEditor];if(delta>0&&deckCount(deckEditor)>=DECK_SLOTS)return;if(delta<0&&floor[type]===0)return;
+  floor[type]+=delta;deckSelectedCar=null;renderDeckUI();
+  $('deck-feedback').textContent=`${deckEditor}층 ${DECK_TYPES[type].name} ${DECK_VEHICLES_PER_ICON}대 ${delta>0?'추가':'삭제'} (그림 1개) · 이 층 ${num(deckVehicleCount(deckEditor))}대`;
+}
+document.addEventListener('click',e=>{const open=e.target.closest('[data-open-deck]');if(open)openVesselDeck(open.dataset.openDeck);});
+document.addEventListener('dblclick',e=>{const vessel=e.target.closest('[data-vessel],[data-group-vessel],[data-vessel-marker]');if(vessel){e.preventDefault();e.stopPropagation();openVesselDeck(vessel.dataset.vessel||vessel.dataset.groupVessel||vessel.dataset.vesselMarker);}},true);
+$('vessel-deck').addEventListener('click',e=>{
+  const focus=e.target.closest('[data-deck-focus]');if(focus){focusDeck(Number(focus.dataset.deckFocus));return;}
+  const select=e.target.closest('[data-deck-select]');if(select){focusDeck(Number(select.dataset.deckSelect));return;}
+  const car=e.target.closest('[data-deck-car]');if(car){deckSelectedCar={level:Number(car.dataset.carLevel),type:car.dataset.deckCar,index:Number(car.dataset.carIndex)};deckEditor=deckSelectedCar.level;deckFocus=deckEditor;renderDeckUI();return;}
+  const adjust=e.target.closest('[data-deck-adjust]');if(adjust)adjustDeckVehicle(adjust.dataset.vehicleType,Number(adjust.dataset.deckAdjust));
+});
+$('deck-drawing').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-deck-car],[data-deck-select]')){e.preventDefault();e.target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+$('deck-gap').addEventListener('input',e=>{deckGap=Number(e.target.value);$('deck-gap-value').textContent=String(deckGap);renderDeckDrawing();});
+$('deck-assembly').addEventListener('click',()=>{deckAssembled=!deckAssembled;if(deckAssembled)deckFocus=0;renderDeckUI();});
+$('deck-reset').addEventListener('click',()=>{deckPlans.set(deckVessel.vessel_id,defaultDeckPlan());deckSelectedCar=null;renderDeckUI();$('deck-feedback').textContent='이 배의 데모 배치를 처음 상태로 돌렸습니다.';});
+$('deck-close').addEventListener('click',()=>$('vessel-deck').close());
+$('vessel-deck').addEventListener('close',()=>{document.body.style.overflow=deckPreviousOverflow;if(deckPreviousFocus?.isConnected)deckPreviousFocus.focus({preventScroll:true});else document.querySelector('[data-open-deck]')?.focus({preventScroll:true});});
+$('vessel-deck').addEventListener('click',e=>{if(e.target!==$('vessel-deck'))return;const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();});
+document.querySelector('.map-readout>span:last-child').textContent='배 더블클릭: 3층 내부 보기 / 묶음 숫자: 가까운 선박';
+window.OCEAN_DEMO.openVesselDeck=openVesselDeck;
+window.OCEAN_DEMO.deckSnapshot=()=>deckVessel?{vesselId:deckVessel.vessel_id,open:$('vessel-deck').open,focus:deckFocus,editor:deckEditor,assembled:deckAssembled,plan:JSON.parse(JSON.stringify(deckPlan())),total:[1,2,3].reduce((sum,level)=>sum+deckCount(level),0),vehiclesPerIcon:DECK_VEHICLES_PER_ICON,totalVehicles:[1,2,3].reduce((sum,level)=>sum+deckVehicleCount(level),0),source:'DEMO_DECK_LAYOUT'}:null;
 </script></body></html>
